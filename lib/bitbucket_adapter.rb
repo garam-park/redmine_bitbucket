@@ -1,10 +1,13 @@
 class BitbucketAdapter
 
-  def initialize(json, new_webhook)
-    if new_webhook
-      load_new_webhook_parameters(json)
-    else
+  def initialize(json, version)
+    case version
+    when 1 
       load_old_service_parameters(json)
+    when 2
+      load_new_webhook_parameters(json)
+    when 3
+      load_after_new_parameters(json)
     end
   end
 
@@ -51,6 +54,15 @@ class BitbucketAdapter
 	
     load_scm(json['scm'].downcase)
   end
+
+  def load_after_new_parameters(json)
+    $tmp = json['full_name'].split('/')
+    @owner = $tmp.first
+    @slug = $tmp.last
+	
+    load_scm(json['scm'].downcase)
+  end
+
   
   def load_scm(scm)
     case scm

@@ -70,9 +70,16 @@ class BitbucketServiceController < ApplicationController
   
   def get_params()
     if params[:payload]
-      return JSON.parse(params[:payload])['repository'], false
+      # old version
+      return JSON.parse(params[:payload])['repository'], 1 
     elsif params['repository']
-      return params['repository'], true
+      if params['repository']['owner']['username']
+        # new version
+        return params['repository'], 2
+      else 
+        # after new version
+        return params['repository'], 3
+      end
     else
       raise "Provided POST parameters could not be recognized by Redmine Bitbucket plugin"
     end
