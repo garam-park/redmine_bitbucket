@@ -29,11 +29,11 @@ class BitbucketServiceController < ApplicationController
   private
 
   def service_enabled?
-    Setting.plugin_redmine_bitbucket[:service_enabled]
+    Setting.plugin_redmine_bitbucket['service_enabled']
   end
 
   def valid_key?
-    setting_key = Setting.plugin_redmine_bitbucket[:service_key]
+    setting_key = Setting.plugin_redmine_bitbucket['service_key']
     return true if setting_key.to_s == ''
     return params[:key] == setting_key
   end
@@ -57,7 +57,7 @@ class BitbucketServiceController < ApplicationController
     if repository
       adapter.update_repository(repository)
 
-    elsif Setting.plugin_redmine_bitbucket[:auto_create]
+    elsif Setting.plugin_redmine_bitbucket['auto_create']
       # Clone the repository into Redmine
       repository = adapter.create_repository(project)
 
@@ -70,9 +70,16 @@ class BitbucketServiceController < ApplicationController
   
   def get_params()
     if params[:payload]
-      return JSON.parse(params[:payload])['repository'], false
+      # old version
+      return JSON.parse(params[:payload])['repository'], 1 
     elsif params['repository']
-      return params['repository'], true
+      if params['repository']['owner']['username']
+        # new version
+        return params['repository'], 2
+      else 
+        # after new version
+        return params['repository'], 3
+      end
     else
       raise "Provided POST parameters could not be recognized by Redmine Bitbucket plugin"
     end
